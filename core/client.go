@@ -33,13 +33,11 @@ func ExecuteRelayCall(execPayload types.ExecutePayload) (string, error) {
 
 	keyManager, err := contracts.NewLSP6(keyManagerAddr, client)
 	if err != nil {
-		fmt.Println("aerror 1: ", err)
 		return "", err
 	}
 
 	auth, err := getAuth()
 	if err != nil {
-		fmt.Println("aerror 2: ", err)
 		return "", err
 	}
 
@@ -47,13 +45,11 @@ func ExecuteRelayCall(execPayload types.ExecutePayload) (string, error) {
 
 	sig, err := hexutil.Decode(execPayload.Tx.Signature)
 	if err != nil {
-		fmt.Println("aerror 3: ", err)
 		return "", err
 	}
 
 	abiPayload, err := hexutil.Decode(execPayload.Tx.Abi)
 	if err != nil {
-		fmt.Println("aerror 4: ", err)
 		return "", err
 	}
 

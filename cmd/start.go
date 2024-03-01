@@ -10,6 +10,7 @@ var startCmd = &cobra.Command{
 	Short: "Starts the transaction relayer",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
+		go core.HandleSubscriptionEvents()
 		core.RunRouter()
 	},
 }

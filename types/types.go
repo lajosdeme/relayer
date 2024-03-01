@@ -13,7 +13,8 @@ type Config struct {
 	Mode    string `mapstructure:"MODE"`
 	Port    int    `mapstructure:"PORT"`
 
-	BaseUrl string `mapstructure:"BASE_URL"`
+	BaseUrl                     string `mapstructure:"BASE_URL"`
+	SubscriptionContractAddress string `mapstructure:"SUBSCRIPTION_CONTRACT_ADDRESS"`
 
 	TokenSecret    string        `mapstructure:"TOKEN_SECRET"`
 	TokenExpiresIn time.Duration `mapstructure:"TOKEN_EXPIRES_IN"`

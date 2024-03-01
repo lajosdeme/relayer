@@ -118,13 +118,13 @@ func Register(c *gin.Context) {
 	fmt.Println("new user registered: ", newUser.ID.String())
 
 	// JWT generation
-	token, err := utils.GenerateToken(Config.TokenExpiresIn, newUser.ID, Config.TokenSecret)
+	token, err := utils.GenerateToken(config.Get().TokenExpiresIn, newUser.ID, config.Get().TokenSecret)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
 		return
 	}
 
-	c.SetCookie("token", token, Config.TokenMaxAge*60, "/", Config.BaseUrl, false, true)
+	c.SetCookie("token", token, config.Get().TokenMaxAge*60, "/", config.Get().BaseUrl, false, true)
 
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "ok",
@@ -157,13 +157,13 @@ func Login(c *gin.Context) {
 	}
 
 	// JWT generation
-	token, err := utils.GenerateToken(Config.TokenExpiresIn, user.ID, Config.TokenSecret)
+	token, err := utils.GenerateToken(config.Get().TokenExpiresIn, user.ID, config.Get().TokenSecret)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
 		return
 	}
 
-	c.SetCookie("token", token, Config.TokenMaxAge*60, "/", Config.BaseUrl, false, true)
+	c.SetCookie("token", token, config.Get().TokenMaxAge*60, "/", config.Get().BaseUrl, false, true)
 	c.JSON(http.StatusOK, gin.H{
 		"status": "ok",
 		"token":  token,

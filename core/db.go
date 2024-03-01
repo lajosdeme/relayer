@@ -9,6 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
+const TotalQuota = 20000000
+
 type Database struct {
 	db *gorm.DB
 }
@@ -35,6 +37,62 @@ func (db *Database) Create(u types.User) error {
 		return res.Error
 	}
 	return nil
+}
+
+func (db *Database) SubscribeUser(userId string, resetDate int) error {
+	var localUser types.User
+
+	tx := db.db.First(&localUser, "ID = ?", userId)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	updates := types.Quota{
+		Quota:      TotalQuota,
+		Unit:       "gas",
+		TotalQuota: TotalQuota,
+		ResetDate:  resetDate,
+	}
+
+	tx = db.db.Model(&localUser).Updates(updates)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	return nil
+}
+
+func (db *Database) UpdateQuotaForUser(userId string, quotaUsed int) error {
+	var localUser types.User
+
+	tx := db.db.First(&localUser, "ID = ?", userId)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	remainingQuota := localUser.Quota.Quota - quotaUsed
+
+	updates := map[string]interface{}{
+		"Quota": remainingQuota,
+	}
+
+	tx = db.db.Model(&localUser).Updates(updates)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	return nil
+}
+
+func (db *Database) GetUser(userId string) (types.User, error) {
+	var localUser types.User
+
+	tx := db.db.First(&localUser, "ID = ?", userId)
+	if tx.Error != nil {
+		return types.User{}, tx.Error
+	}
+
+	return localUser, nil
 }
 
 func initDB() *Database {
