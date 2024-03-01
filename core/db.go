@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/lajosdeme/transaction-relayer/types"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -74,6 +75,26 @@ func (db *Database) UpdateQuotaForUser(userId string, quotaUsed int) error {
 
 	updates := map[string]interface{}{
 		"Quota": remainingQuota,
+	}
+
+	tx = db.db.Model(&localUser).Updates(updates)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	return nil
+}
+
+func (db *Database) UpdateVerifiedAddresses(id uuid.UUID, verifiedAddresses types.VerifiedAddresses) error {
+	var localUser types.User
+
+	tx := db.db.First(&localUser, "ID = ?", id)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	updates := map[string]interface{}{
+		"VerifiedAddresses": verifiedAddresses,
 	}
 
 	tx = db.db.Model(&localUser).Updates(updates)

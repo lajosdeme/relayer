@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -28,6 +29,8 @@ func configRouter() *gin.Engine {
 	r.POST("/register", Register)
 	r.POST("/login", Login)
 
+	r.POST("/verify/address", VerifyAddress)
+
 	return r
 }
 
@@ -41,12 +44,33 @@ func execute(c *gin.Context) {
 		return
 	}
 
-	hash, err := ExecuteRelayCall(payload)
+	u, err := DB().GetUser(payload.UserId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
+		return
+	}
+
+	if !utils.Contains(u.VerifiedAddresses, payload.Address) {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": "request to unverified address"})
+		return
+	}
+
+	currentTime := time.Now().Unix()
+	if u.Quota.ResetDate < int(currentTime) {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": "user is not subscribed"})
+		return
+	}
+
+	hash, gasUsed, err := ExecuteRelayCall(payload, u.Quota.Quota)
 
 	if err != nil {
 		fmt.Println("failed to execute relay call: ", err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
 		return
+	}
+
+	if err := DB().UpdateQuotaForUser(payload.UserId, gasUsed); err != nil {
+		fmt.Println("error updating quota: ", err)
 	}
 
 	resp := types.ExecuteResponse{
@@ -62,13 +86,18 @@ func ping(c *gin.Context) {
 
 // Dummy quota, TODO: Implement real quota calculation and getter logic
 func quota(c *gin.Context) {
-	q := types.Quota{
-		Quota:      20000000,
-		Unit:       "gas",
-		TotalQuota: 20000000,
-		ResetDate:  1764098470,
+	resp, err := authenticateRequest(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
+		return
 	}
-	c.JSON(http.StatusOK, q)
+	u, err := DB().GetUser(resp.UserId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, u.Quota)
 }
 
 func Register(c *gin.Context) {
@@ -168,4 +197,74 @@ func Login(c *gin.Context) {
 		"status": "ok",
 		"token":  token,
 	})
+}
+
+func VerifyAddress(c *gin.Context) {
+	resp, err := authenticateRequest(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
+		return
+	}
+
+	u, err := DB().GetUser(resp.UserId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
+		return
+	}
+
+	var payload types.VerifiedAddressInput
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		fmt.Println("failed to bind payload: ", err)
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
+		return
+	}
+
+	u.VerifiedAddresses = append(u.VerifiedAddresses, payload.Address)
+	if err := DB().UpdateVerifiedAddresses(u.ID, u.VerifiedAddresses); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
+func authenticateRequest(c *gin.Context) (types.AuthResponse, error) {
+	token, err := getToken(c)
+	if err != nil {
+		return types.AuthResponse{Status: "fail"}, err
+	}
+
+	sub, err := utils.ValidateToken(token, config.Get().TokenSecret)
+	if err != nil {
+		return types.AuthResponse{Status: "fail"}, err
+	}
+
+	var user types.User
+	result := DB().Find(&user, "id = ?", fmt.Sprint(sub))
+
+	if result.Error != nil {
+		return types.AuthResponse{Status: "fail"}, errors.New("user doesn't exist")
+	}
+
+	return types.AuthResponse{Status: "ok", UserId: user.ID.String()}, nil
+}
+
+func getToken(c *gin.Context) (string, error) {
+	var token string
+	cookie, err := c.Cookie("token")
+
+	authorizationHeader := c.Request.Header.Get("Authorization")
+	fields := strings.Fields(authorizationHeader)
+
+	if len(fields) != 0 && fields[0] == "Bearer" {
+		token = fields[1]
+	} else if err == nil {
+		token = cookie
+	}
+
+	if token == "" {
+		return "", errors.New("empty token")
+	}
+
+	return token, nil
 }

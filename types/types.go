@@ -1,6 +1,11 @@
 package types
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,6 +34,8 @@ type User struct {
 
 	Password string `gorm:"not null"`
 
+	VerifiedAddresses VerifiedAddresses `json:"verified_addresses"`
+
 	Quota     Quota     `json:"quota"`
 	CreatedAt time.Time `gorm:"not null"`
 	UpdatedAt time.Time `gorm:"not null"`
@@ -47,6 +54,7 @@ type SignInInput struct {
 }
 
 type ExecutePayload struct {
+	UserId  string      `json:"user_id"`
 	Address string      `json:"address"`
 	Tx      Transaction `json:"transaction"`
 }
@@ -67,4 +75,39 @@ type Quota struct {
 	Unit       string `json:"unit"`
 	TotalQuota int    `json:"totalQuota"`
 	ResetDate  int    `json:"resetDate"`
+}
+
+type AuthResponse struct {
+	Status string `json:"status"`
+	UserId string `json:"user_id"`
+}
+
+type VerifiedAddressInput struct {
+	Address string `json:"address"`
+}
+
+type VerifiedAddresses []string
+
+func (a VerifiedAddresses) Value() (driver.Value, error) {
+	if len(a) == 0 {
+		return "[]", nil
+	}
+	return fmt.Sprintf(`["%s"]`, strings.Join(a, `","`)), nil
+}
+
+func (a *VerifiedAddresses) Scan(src interface{}) (err error) {
+	var verifiedAddresses []string
+	switch src := src.(type) {
+	case string:
+		err = json.Unmarshal([]byte(src), &verifiedAddresses)
+	case []byte:
+		err = json.Unmarshal(src, &verifiedAddresses)
+	default:
+		return errors.New("incompatible type for description")
+	}
+	if err != nil {
+		return err
+	}
+	*a = verifiedAddresses
+	return nil
 }
