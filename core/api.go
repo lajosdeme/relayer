@@ -3,10 +3,15 @@ package core
 import (
 	"fmt"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lajosdeme/transaction-relayer/config"
 	"github.com/lajosdeme/transaction-relayer/types"
+	"github.com/lajosdeme/transaction-relayer/utils"
+
+	"github.com/google/uuid"
 )
 
 func RunRouter() {
@@ -19,6 +24,9 @@ func configRouter() *gin.Engine {
 	r.GET("/ping", ping)
 	r.POST("/execute", execute)
 	r.POST("/quota", quota)
+
+	r.POST("/register", Register)
+	r.POST("/login", Login)
 
 	return r
 }
@@ -61,4 +69,103 @@ func quota(c *gin.Context) {
 		ResetDate:  1764098470,
 	}
 	c.JSON(http.StatusOK, q)
+}
+
+func Register(c *gin.Context) {
+	var payload *types.SignUpInput
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
+		return
+	}
+
+	var user types.User
+	res := DB().Find(&user, "email = ?", strings.ToLower(payload.Email))
+	if res.Error == nil && user.Email != "" {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": "email already registered"})
+		return
+	}
+
+	if payload.Password != payload.PasswordConfirm {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": "passwords do not match"})
+		return
+	}
+
+	hashedPassword, err := utils.HashPassword(payload.Password)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": "passwords do not match"})
+		return
+	}
+
+	now := time.Now()
+	newUser := types.User{
+		ID:        uuid.New(),
+		Name:      payload.Name,
+		Email:     strings.ToLower(payload.Email),
+		Password:  hashedPassword,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+
+	if err := DB().Create(newUser); err != nil {
+		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+			c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": "user with email already exists"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "error": err.Error()})
+		return
+	}
+
+	fmt.Println("new user registered: ", newUser.ID.String())
+
+	// JWT generation
+	token, err := utils.GenerateToken(Config.TokenExpiresIn, newUser.ID, Config.TokenSecret)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
+		return
+	}
+
+	c.SetCookie("token", token, Config.TokenMaxAge*60, "/", Config.BaseUrl, false, true)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "ok",
+		"user_id": newUser.ID.String(),
+		"token":   token,
+	})
+}
+
+func Login(c *gin.Context) {
+	fmt.Println("login request received")
+	var payload types.SignInInput
+
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
+		return
+	}
+
+	var user types.User
+
+	res := DB().Find(&user, "email = ?", strings.ToLower(payload.Email))
+	if res.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": "user doesn't exist"})
+		return
+	}
+
+	if err := utils.VerifyPassword(user.Password, payload.Password); err != nil {
+		fmt.Println("password verify error: ", err)
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": "invalid password"})
+		return
+	}
+
+	// JWT generation
+	token, err := utils.GenerateToken(Config.TokenExpiresIn, user.ID, Config.TokenSecret)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": err.Error()})
+		return
+	}
+
+	c.SetCookie("token", token, Config.TokenMaxAge*60, "/", Config.BaseUrl, false, true)
+	c.JSON(http.StatusOK, gin.H{
+		"status": "ok",
+		"token":  token,
+	})
 }

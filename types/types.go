@@ -1,10 +1,48 @@
 package types
 
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
+
 type Config struct {
 	NodeUrl string `mapstructure:"NODE_URL"`
 	Key     string `mapstructure:"KEY"`
 	Mode    string `mapstructure:"MODE"`
 	Port    int    `mapstructure:"PORT"`
+
+	BaseUrl string `mapstructure:"BASE_URL"`
+
+	TokenSecret    string        `mapstructure:"TOKEN_SECRET"`
+	TokenExpiresIn time.Duration `mapstructure:"TOKEN_EXPIRES_IN"`
+	TokenMaxAge    int           `mapstructure:"TOKEN_MAXAGE"`
+}
+
+type User struct {
+	gorm.Model
+	ID    uuid.UUID `gorm:"type:uuid" json:"user_id"`
+	Email string    `json:"email"`
+	Name  string    `json:"name"`
+
+	Password string `gorm:"not null"`
+
+	Quota     Quota     `json:"quota"`
+	CreatedAt time.Time `gorm:"not null"`
+	UpdatedAt time.Time `gorm:"not null"`
+}
+
+type SignUpInput struct {
+	Name            string `json:"name" binding:"required"`
+	Email           string `json:"email" binding:"required"`
+	Password        string `json:"password" binding:"required,min=8"`
+	PasswordConfirm string `json:"password_confirm" binding:"required"`
+}
+
+type SignInInput struct {
+	Email    string `json:"email"  binding:"required"`
+	Password string `json:"password"  binding:"required"`
 }
 
 type ExecutePayload struct {
