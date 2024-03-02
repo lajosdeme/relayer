@@ -52,10 +52,10 @@ func execute(c *gin.Context) {
 		return
 	}
 
-	if !utils.Contains(u.VerifiedAddresses, payload.Address) {
+	/* 	if !utils.Contains(u.VerifiedAddresses, payload.Address) {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "fail", "error": "request to unverified address"})
 		return
-	}
+	} */
 
 	currentTime := time.Now().Unix()
 	if u.Quota.ResetDate < int(currentTime) {
