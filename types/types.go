@@ -36,7 +36,7 @@ type User struct {
 
 	VerifiedAddresses VerifiedAddresses `json:"verified_addresses"`
 
-	Quota     Quota     `json:"quota"`
+	Quota
 	CreatedAt time.Time `gorm:"not null"`
 	UpdatedAt time.Time `gorm:"not null"`
 }

@@ -26,6 +26,8 @@ func configRouter() *gin.Engine {
 	r.POST("/execute", execute)
 	r.POST("/quota", quota)
 
+	r.GET("/user", GetUser)
+
 	r.POST("/register", Register)
 	r.POST("/login", Login)
 
@@ -267,4 +269,20 @@ func getToken(c *gin.Context) (string, error) {
 	}
 
 	return token, nil
+}
+
+func GetUser(c *gin.Context) {
+	resp, err := authenticateRequest(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "error": err.Error()})
+		return
+	}
+
+	u, err := DB().GetUser(resp.UserId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, u)
 }

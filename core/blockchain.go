@@ -79,12 +79,31 @@ func SubscriptionContract(client *ethclient.Client) (*contracts.Subscription, er
 }
 
 func handleEvent(l types.Log) {
-	newWorkEventSig := crypto.Keccak256Hash([]byte("NewSubscription(string,uint256)")).Hex()
+	newWorkEventSig := crypto.Keccak256Hash([]byte("NewSubscription(bytes32,uint256)")).Hex()
 	eventSig := l.Topics[0].Hex()
 
 	switch eventSig {
 	case newWorkEventSig:
-		userId := l.Topics[1].String()
+		var id [32]byte
+		copy(id[:], l.Topics[1].Bytes()[:32])
+
+		client, err := client()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		contract, err := SubscriptionContract(client)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		userId, err := contract.UserIds(nil, id)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
 		fmt.Println("user id: ", userId)
 
 		expiry := new(big.Int).SetBytes(l.Topics[2].Bytes())

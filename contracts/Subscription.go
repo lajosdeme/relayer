@@ -27,7 +27,7 @@ var (
 )
 
 // SubscriptionABI is the input ABI used to generate the binding from.
-const SubscriptionABI = "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_subscriptionPrice\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"string\",\"name\":\"userId\",\"type\":\"string\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"name\":\"NewSubscription\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_userId\",\"type\":\"string\"}],\"name\":\"isSubscribed\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_newPrice\",\"type\":\"uint256\"}],\"name\":\"setSubscriptionPrice\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_userId\",\"type\":\"string\"}],\"name\":\"subscribe\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"subscriptionPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+const SubscriptionABI = "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_subscriptionPrice\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"userId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"expiry\",\"type\":\"uint256\"}],\"name\":\"NewSubscription\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_userId\",\"type\":\"string\"}],\"name\":\"isSubscribed\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_newPrice\",\"type\":\"uint256\"}],\"name\":\"setSubscriptionPrice\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_userId\",\"type\":\"string\"}],\"name\":\"subscribe\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"name\":\"subscriptionInfos\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"subscriptionPrice\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"userIds\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
 
 // Subscription is an auto generated Go binding around an Ethereum contract.
 type Subscription struct {
@@ -233,6 +233,37 @@ func (_Subscription *SubscriptionCallerSession) Owner() (common.Address, error) 
 	return _Subscription.Contract.Owner(&_Subscription.CallOpts)
 }
 
+// SubscriptionInfos is a free data retrieval call binding the contract method 0x372ef0b9.
+//
+// Solidity: function subscriptionInfos(string ) view returns(uint256)
+func (_Subscription *SubscriptionCaller) SubscriptionInfos(opts *bind.CallOpts, arg0 string) (*big.Int, error) {
+	var out []interface{}
+	err := _Subscription.contract.Call(opts, &out, "subscriptionInfos", arg0)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// SubscriptionInfos is a free data retrieval call binding the contract method 0x372ef0b9.
+//
+// Solidity: function subscriptionInfos(string ) view returns(uint256)
+func (_Subscription *SubscriptionSession) SubscriptionInfos(arg0 string) (*big.Int, error) {
+	return _Subscription.Contract.SubscriptionInfos(&_Subscription.CallOpts, arg0)
+}
+
+// SubscriptionInfos is a free data retrieval call binding the contract method 0x372ef0b9.
+//
+// Solidity: function subscriptionInfos(string ) view returns(uint256)
+func (_Subscription *SubscriptionCallerSession) SubscriptionInfos(arg0 string) (*big.Int, error) {
+	return _Subscription.Contract.SubscriptionInfos(&_Subscription.CallOpts, arg0)
+}
+
 // SubscriptionPrice is a free data retrieval call binding the contract method 0xbdc8e54c.
 //
 // Solidity: function subscriptionPrice() view returns(uint256)
@@ -262,6 +293,37 @@ func (_Subscription *SubscriptionSession) SubscriptionPrice() (*big.Int, error) 
 // Solidity: function subscriptionPrice() view returns(uint256)
 func (_Subscription *SubscriptionCallerSession) SubscriptionPrice() (*big.Int, error) {
 	return _Subscription.Contract.SubscriptionPrice(&_Subscription.CallOpts)
+}
+
+// UserIds is a free data retrieval call binding the contract method 0xe8e9a0dd.
+//
+// Solidity: function userIds(bytes32 ) view returns(string)
+func (_Subscription *SubscriptionCaller) UserIds(opts *bind.CallOpts, arg0 [32]byte) (string, error) {
+	var out []interface{}
+	err := _Subscription.contract.Call(opts, &out, "userIds", arg0)
+
+	if err != nil {
+		return *new(string), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(string)).(*string)
+
+	return out0, err
+
+}
+
+// UserIds is a free data retrieval call binding the contract method 0xe8e9a0dd.
+//
+// Solidity: function userIds(bytes32 ) view returns(string)
+func (_Subscription *SubscriptionSession) UserIds(arg0 [32]byte) (string, error) {
+	return _Subscription.Contract.UserIds(&_Subscription.CallOpts, arg0)
+}
+
+// UserIds is a free data retrieval call binding the contract method 0xe8e9a0dd.
+//
+// Solidity: function userIds(bytes32 ) view returns(string)
+func (_Subscription *SubscriptionCallerSession) UserIds(arg0 [32]byte) (string, error) {
+	return _Subscription.Contract.UserIds(&_Subscription.CallOpts, arg0)
 }
 
 // RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
@@ -438,15 +500,15 @@ func (it *SubscriptionNewSubscriptionIterator) Close() error {
 
 // SubscriptionNewSubscription represents a NewSubscription event raised by the Subscription contract.
 type SubscriptionNewSubscription struct {
-	UserId common.Hash
+	UserId [32]byte
 	Expiry *big.Int
 	Raw    types.Log // Blockchain specific contextual infos
 }
 
-// FilterNewSubscription is a free log retrieval operation binding the contract event 0x46c731fe00969f33592dfb439cbe0dd4655a462556648e4cb6d10290ecc9cbfc.
+// FilterNewSubscription is a free log retrieval operation binding the contract event 0x13e977830ab671ffcea593869c5a7e283a95fe549000ed29fa2039e33592eb7f.
 //
-// Solidity: event NewSubscription(string indexed userId, uint256 indexed expiry)
-func (_Subscription *SubscriptionFilterer) FilterNewSubscription(opts *bind.FilterOpts, userId []string, expiry []*big.Int) (*SubscriptionNewSubscriptionIterator, error) {
+// Solidity: event NewSubscription(bytes32 indexed userId, uint256 indexed expiry)
+func (_Subscription *SubscriptionFilterer) FilterNewSubscription(opts *bind.FilterOpts, userId [][32]byte, expiry []*big.Int) (*SubscriptionNewSubscriptionIterator, error) {
 
 	var userIdRule []interface{}
 	for _, userIdItem := range userId {
@@ -464,10 +526,10 @@ func (_Subscription *SubscriptionFilterer) FilterNewSubscription(opts *bind.Filt
 	return &SubscriptionNewSubscriptionIterator{contract: _Subscription.contract, event: "NewSubscription", logs: logs, sub: sub}, nil
 }
 
-// WatchNewSubscription is a free log subscription operation binding the contract event 0x46c731fe00969f33592dfb439cbe0dd4655a462556648e4cb6d10290ecc9cbfc.
+// WatchNewSubscription is a free log subscription operation binding the contract event 0x13e977830ab671ffcea593869c5a7e283a95fe549000ed29fa2039e33592eb7f.
 //
-// Solidity: event NewSubscription(string indexed userId, uint256 indexed expiry)
-func (_Subscription *SubscriptionFilterer) WatchNewSubscription(opts *bind.WatchOpts, sink chan<- *SubscriptionNewSubscription, userId []string, expiry []*big.Int) (event.Subscription, error) {
+// Solidity: event NewSubscription(bytes32 indexed userId, uint256 indexed expiry)
+func (_Subscription *SubscriptionFilterer) WatchNewSubscription(opts *bind.WatchOpts, sink chan<- *SubscriptionNewSubscription, userId [][32]byte, expiry []*big.Int) (event.Subscription, error) {
 
 	var userIdRule []interface{}
 	for _, userIdItem := range userId {
@@ -510,9 +572,9 @@ func (_Subscription *SubscriptionFilterer) WatchNewSubscription(opts *bind.Watch
 	}), nil
 }
 
-// ParseNewSubscription is a log parse operation binding the contract event 0x46c731fe00969f33592dfb439cbe0dd4655a462556648e4cb6d10290ecc9cbfc.
+// ParseNewSubscription is a log parse operation binding the contract event 0x13e977830ab671ffcea593869c5a7e283a95fe549000ed29fa2039e33592eb7f.
 //
-// Solidity: event NewSubscription(string indexed userId, uint256 indexed expiry)
+// Solidity: event NewSubscription(bytes32 indexed userId, uint256 indexed expiry)
 func (_Subscription *SubscriptionFilterer) ParseNewSubscription(log types.Log) (*SubscriptionNewSubscription, error) {
 	event := new(SubscriptionNewSubscription)
 	if err := _Subscription.contract.UnpackLog(event, "NewSubscription", log); err != nil {
