@@ -22,6 +22,7 @@ func RunRouter() {
 
 func configRouter() *gin.Engine {
 	r := gin.Default()
+	addMiddleware(r)
 	r.GET("/ping", ping)
 	r.POST("/execute", execute)
 	r.POST("/quota", quota)
@@ -274,15 +275,31 @@ func getToken(c *gin.Context) (string, error) {
 func GetUser(c *gin.Context) {
 	resp, err := authenticateRequest(c)
 	if err != nil {
+		fmt.Println("auth fail: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "error": err.Error()})
 		return
 	}
 
 	u, err := DB().GetUser(resp.UserId)
 	if err != nil {
+		fmt.Println("get fail: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, u)
+}
+
+func addMiddleware(r *gin.Engine) {
+	// Enable CORS middleware
+	r.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")            // Allow requests from this origin
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS") // Allow specified methods
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")     // Allow specified headers
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(200) // Handle preflight requests
+			return
+		}
+		c.Next()
+	})
 }
